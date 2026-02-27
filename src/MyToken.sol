@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-contract MyToken{
-    mapping (address => uint256) public balanceOf;
+contract MyToken {
+    mapping(address => uint256) public balanceOf;
     uint256 public totalSupply;
     mapping(address => mapping(address => uint256)) public allowance;
 
@@ -13,11 +13,7 @@ contract MyToken{
     event Transfer(address indexed from, address indexed to, uint256 value);
     event Approval(address indexed owner, address indexed spender, uint256 value);
 
-    constructor(
-        string memory _name,
-        string memory _symbol,
-        uint8 _decimals
-    ){
+    constructor(string memory _name, string memory _symbol, uint8 _decimals) {
         name = _name;
         symbol = _symbol;
         decimals = _decimals;
@@ -26,7 +22,7 @@ contract MyToken{
         emit Transfer(address(0), msg.sender, totalSupply);
     }
 
-    function transfer(address to, uint256 amount) external returns (bool){
+    function transfer(address to, uint256 amount) external returns (bool) {
         uint256 fromBal = balanceOf[msg.sender];
         require(fromBal >= amount, "INSUFFICIENT_BAL");
         require(to != address(0), "ZERO_ADDR");
@@ -36,14 +32,13 @@ contract MyToken{
         return true;
     }
 
-    function approve(address spender, uint256 amount) external returns (bool){
+    function approve(address spender, uint256 amount) external returns (bool) {
         allowance[msg.sender][spender] = amount;
         emit Approval(msg.sender, spender, amount);
         return true;
-        
     }
 
-    function transferFrom(address from, address to, uint256 amount) external returns (bool){
+    function transferFrom(address from, address to, uint256 amount) external returns (bool) {
         require(to != address(0), "ZERO_ADDR");
         uint256 allowed = allowance[from][msg.sender];
         require(allowed >= amount, "NOT_ALLOWED");
@@ -54,7 +49,6 @@ contract MyToken{
         balanceOf[to] += amount;
         emit Transfer(from, to, amount);
         emit Approval(from, msg.sender, allowance[from][msg.sender]);
-        return true; 
+        return true;
     }
-
 }
