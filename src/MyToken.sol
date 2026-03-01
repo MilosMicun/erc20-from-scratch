@@ -7,7 +7,6 @@ error ZeroAddress();
 error NotOwner();
 
 contract MyToken {
-
     mapping(address => uint256) public balanceOf;
     uint256 public totalSupply;
     mapping(address => mapping(address => uint256)) public allowance;
@@ -17,8 +16,8 @@ contract MyToken {
     uint8 public decimals;
     address public owner;
 
-    modifier onlyOwner(){
-        if(msg.sender != owner) revert NotOwner();
+    modifier onlyOwner() {
+        if (msg.sender != owner) revert NotOwner();
         _;
     }
 
@@ -36,9 +35,9 @@ contract MyToken {
     }
 
     function transfer(address to, uint256 amount) external returns (bool) {
-        if(to == address(0)) revert ZeroAddress();
+        if (to == address(0)) revert ZeroAddress();
         uint256 fromBal = balanceOf[msg.sender];
-        if(fromBal < amount) revert InsufficientBalance(fromBal, amount);
+        if (fromBal < amount) revert InsufficientBalance(fromBal, amount);
         balanceOf[msg.sender] = fromBal - amount;
         balanceOf[to] += amount;
         emit Transfer(msg.sender, to, amount);
@@ -52,11 +51,11 @@ contract MyToken {
     }
 
     function transferFrom(address from, address to, uint256 amount) external returns (bool) {
-        if(to == address(0)) revert ZeroAddress();
+        if (to == address(0)) revert ZeroAddress();
         uint256 allowed = allowance[from][msg.sender];
-        if(allowed < amount) revert NotAllowed(allowed, amount);
+        if (allowed < amount) revert NotAllowed(allowed, amount);
         uint256 fromBal = balanceOf[from];
-        if(fromBal < amount) revert InsufficientBalance(fromBal, amount);
+        if (fromBal < amount) revert InsufficientBalance(fromBal, amount);
         allowance[from][msg.sender] = allowed - amount;
         balanceOf[from] = fromBal - amount;
         balanceOf[to] += amount;
@@ -65,20 +64,20 @@ contract MyToken {
         return true;
     }
 
-    function mint(address to, uint256 amount) external onlyOwner returns (bool){
-        if(to == address(0)) revert ZeroAddress();
+    function mint(address to, uint256 amount) external onlyOwner returns (bool) {
+        if (to == address(0)) revert ZeroAddress();
         totalSupply += amount;
         balanceOf[to] += amount;
         emit Transfer(address(0), to, amount);
         return true;
     }
 
-    function burn(uint256 amount) external returns (bool){
+    function burn(uint256 amount) external returns (bool) {
         uint256 bal = balanceOf[msg.sender];
-        if(bal < amount) revert InsufficientBalance(bal, amount);
-        balanceOf[msg.sender] = bal -amount;
+        if (bal < amount) revert InsufficientBalance(bal, amount);
+        balanceOf[msg.sender] = bal - amount;
         totalSupply -= amount;
         emit Transfer(msg.sender, address(0), amount);
-        return true;    
+        return true;
     }
 }
