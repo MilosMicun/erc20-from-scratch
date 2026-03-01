@@ -1,7 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+error InsufficientBalance(uint256 available, uint256 required);
+error NotAllowed(uint256 allowed, uint256 requested);
+error ZeroAddress();
+error NotOwner();
+
 contract MyToken {
+
     mapping(address => uint256) public balanceOf;
     uint256 public totalSupply;
     mapping(address => mapping(address => uint256)) public allowance;
@@ -9,11 +15,18 @@ contract MyToken {
     string public name;
     string public symbol;
     uint8 public decimals;
+    address public owner;
+
+    modifier onlyOwner(){
+        if(msg.sender != owner) revert NotOwner();
+        _;
+    }
 
     event Transfer(address indexed from, address indexed to, uint256 value);
     event Approval(address indexed owner, address indexed spender, uint256 value);
 
     constructor(string memory _name, string memory _symbol, uint8 _decimals) {
+        owner = msg.sender;
         name = _name;
         symbol = _symbol;
         decimals = _decimals;
@@ -23,9 +36,9 @@ contract MyToken {
     }
 
     function transfer(address to, uint256 amount) external returns (bool) {
+        if(to == address(0)) revert ZeroAddress();
         uint256 fromBal = balanceOf[msg.sender];
-        require(fromBal >= amount, "INSUFFICIENT_BAL");
-        require(to != address(0), "ZERO_ADDR");
+        if(fromBal < amount) revert InsufficientBalance(fromBal, amount);
         balanceOf[msg.sender] = fromBal - amount;
         balanceOf[to] += amount;
         emit Transfer(msg.sender, to, amount);
@@ -33,22 +46,40 @@ contract MyToken {
     }
 
     function approve(address spender, uint256 amount) external returns (bool) {
+        if(spender == address(0)) revert ZeroAddress();
         allowance[msg.sender][spender] = amount;
         emit Approval(msg.sender, spender, amount);
         return true;
     }
 
     function transferFrom(address from, address to, uint256 amount) external returns (bool) {
-        require(to != address(0), "ZERO_ADDR");
+        if(to == address(0)) revert ZeroAddress();
         uint256 allowed = allowance[from][msg.sender];
-        require(allowed >= amount, "NOT_ALLOWED");
+        if(allowed < amount) revert NotAllowed(allowed, amount);
         uint256 fromBal = balanceOf[from];
-        require(fromBal >= amount, "INSUFFICIENT_BAL");
+        if(fromBal < amount) revert InsufficientBalance(fromBal, amount);
         allowance[from][msg.sender] = allowed - amount;
         balanceOf[from] = fromBal - amount;
         balanceOf[to] += amount;
         emit Transfer(from, to, amount);
         emit Approval(from, msg.sender, allowance[from][msg.sender]);
         return true;
+    }
+
+    function mint(address to, uint256 amount) external onlyOwner returns (bool){
+        if(to == address(0)) revert ZeroAddress();
+        totalSupply += amount;
+        balanceOf[to] += amount;
+        emit Transfer(address(0), to, amount);
+        return true;
+    }
+
+    function burn(uint256 amount) external returns (bool){
+        uint256 bal = balanceOf[msg.sender];
+        if(bal < amount) revert InsufficientBalance(bal, amount);
+        balanceOf[msg.sender] = bal -amount;
+        totalSupply -= amount;
+        emit Transfer(msg.sender, address(0), amount);
+        return true;    
     }
 }
