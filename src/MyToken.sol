@@ -46,7 +46,6 @@ contract MyToken {
     }
 
     function approve(address spender, uint256 amount) external returns (bool) {
-        if(spender == address(0)) revert ZeroAddress();
         allowance[msg.sender][spender] = amount;
         emit Approval(msg.sender, spender, amount);
         return true;
