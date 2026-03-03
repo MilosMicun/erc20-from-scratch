@@ -45,8 +45,23 @@ contract MyToken {
     }
 
     function approve(address spender, uint256 amount) external returns (bool) {
+        // NOTE: ERC20 approve has a known race condition; prefer setting to 0 first or using increase/decreaseAllowance patterns.
         allowance[msg.sender][spender] = amount;
         emit Approval(msg.sender, spender, amount);
+        return true;
+    }
+
+    function increaseAllowance(address spender, uint256 addedValue) external returns (bool) {
+        allowance[msg.sender][spender] += addedValue;
+        emit Approval(msg.sender, spender, allowance[msg.sender][spender]);
+        return true;
+    }
+
+    function decreaseAllowance(address spender, uint256 subtractedValue) external returns (bool) {
+        uint256 current = allowance[msg.sender][spender];
+        if (current < subtractedValue) revert NotAllowed(current, subtractedValue);
+        allowance[msg.sender][spender] = current - subtractedValue;
+        emit Approval(msg.sender, spender, allowance[msg.sender][spender]);
         return true;
     }
 

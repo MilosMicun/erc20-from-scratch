@@ -154,4 +154,31 @@ contract MyTokenTest is Test {
         vm.expectRevert(abi.encodeWithSelector(InsufficientBalance.selector, aliceBal, amount));
         token.burn(amount);
     }
+
+    function testIncreaseAllowance() public {
+        uint256 start = 50 ether;
+        vm.prank(alice);
+        token.approve(spender, start);
+        vm.prank(alice);
+        token.increaseAllowance(spender, 20 ether);
+        assertEq(token.allowance(alice, spender), 70 ether);
+    }
+
+    function testDecreaseAllowance() public {
+        uint256 start = 100 ether;
+        vm.prank(alice);
+        token.approve(spender, start);
+        vm.prank(alice);
+        token.decreaseAllowance(spender, 30 ether);
+        assertEq(token.allowance(alice, spender), 70 ether);
+    }
+
+    function testDecreaseAllowanceRevert() public {
+        uint256 start = 10 ether;
+        vm.prank(alice);
+        token.approve(spender, start);
+        vm.prank(alice);
+        vm.expectRevert(abi.encodeWithSelector(NotAllowed.selector, start, start + 1));
+        token.decreaseAllowance(spender, start + 1);
+    }
 }
