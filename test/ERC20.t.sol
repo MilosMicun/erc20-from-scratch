@@ -181,4 +181,20 @@ contract MyTokenTest is Test {
         vm.expectRevert(abi.encodeWithSelector(NotAllowed.selector, start, start + 1));
         token.decreaseAllowance(spender, start + 1);
     }
+
+    function testZeroTransfer() public {
+        uint256 aliceBefore = token.balanceOf(alice);
+        uint256 bobBefore = token.balanceOf(bob);
+        uint256 supplyBefore = token.totalSupply();
+        uint256 amount = 0;
+
+        vm.expectEmit(true, true, false, true);
+        emit Transfer(alice, bob, amount);
+
+        vm.prank(alice);
+        token.transfer(bob, amount);
+        assertEq(token.balanceOf(alice), aliceBefore);
+        assertEq(token.balanceOf(bob), bobBefore);
+        assertEq(token.totalSupply(), supplyBefore);
+    }
 }

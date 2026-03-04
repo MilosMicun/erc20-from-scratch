@@ -2,7 +2,7 @@
 pragma solidity ^0.8.20;
 
 import "forge-std/Test.sol";
-import "../../src/MyToken.sol";
+import "src/MyToken.sol";
 
 contract Handler is Test {
     MyToken public token;
