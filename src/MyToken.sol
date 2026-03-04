@@ -36,23 +36,29 @@ contract MyToken {
 
     function transfer(address to, uint256 amount) external returns (bool) {
         if (to == address(0)) revert ZeroAddress();
-        uint256 fromBal = balanceOf[msg.sender];
+        address from = msg.sender;
+        uint256 fromBal = balanceOf[from];
         if (fromBal < amount) revert InsufficientBalance(fromBal, amount);
-        balanceOf[msg.sender] = fromBal - amount;
-        balanceOf[to] += amount;
-        emit Transfer(msg.sender, to, amount);
+        unchecked {
+            balanceOf[from] = fromBal - amount;
+            balanceOf[to] += amount;
+        }
+        emit Transfer(from, to, amount);
         return true;
     }
 
     function approve(address spender, uint256 amount) external returns (bool) {
         // NOTE: ERC20 approve has a known race condition; prefer setting to 0 first or using increase/decreaseAllowance patterns.
+        if (spender == address(0)) revert ZeroAddress();
         allowance[msg.sender][spender] = amount;
         emit Approval(msg.sender, spender, amount);
         return true;
     }
 
     function increaseAllowance(address spender, uint256 addedValue) external returns (bool) {
-        allowance[msg.sender][spender] += addedValue;
+        unchecked {
+            allowance[msg.sender][spender] += addedValue;
+        }
         emit Approval(msg.sender, spender, allowance[msg.sender][spender]);
         return true;
     }
@@ -60,7 +66,9 @@ contract MyToken {
     function decreaseAllowance(address spender, uint256 subtractedValue) external returns (bool) {
         uint256 current = allowance[msg.sender][spender];
         if (current < subtractedValue) revert NotAllowed(current, subtractedValue);
-        allowance[msg.sender][spender] = current - subtractedValue;
+        unchecked {
+            allowance[msg.sender][spender] = current - subtractedValue;
+        }
         emit Approval(msg.sender, spender, allowance[msg.sender][spender]);
         return true;
     }
@@ -71,18 +79,25 @@ contract MyToken {
         if (allowed < amount) revert NotAllowed(allowed, amount);
         uint256 fromBal = balanceOf[from];
         if (fromBal < amount) revert InsufficientBalance(fromBal, amount);
-        allowance[from][msg.sender] = allowed - amount;
-        balanceOf[from] = fromBal - amount;
-        balanceOf[to] += amount;
+        if (allowed != type(uint256).max) {
+            unchecked {
+                allowance[from][msg.sender] = allowed - amount;
+            }
+        }
+        unchecked {
+            balanceOf[from] = fromBal - amount;
+            balanceOf[to] += amount;
+        }
         emit Transfer(from, to, amount);
-        emit Approval(from, msg.sender, allowance[from][msg.sender]);
         return true;
     }
 
     function mint(address to, uint256 amount) external onlyOwner returns (bool) {
         if (to == address(0)) revert ZeroAddress();
-        totalSupply += amount;
-        balanceOf[to] += amount;
+        unchecked {
+            totalSupply += amount;
+            balanceOf[to] += amount;
+        }
         emit Transfer(address(0), to, amount);
         return true;
     }
@@ -90,8 +105,10 @@ contract MyToken {
     function burn(uint256 amount) external returns (bool) {
         uint256 bal = balanceOf[msg.sender];
         if (bal < amount) revert InsufficientBalance(bal, amount);
-        balanceOf[msg.sender] = bal - amount;
-        totalSupply -= amount;
+        unchecked {
+            balanceOf[msg.sender] = bal - amount;
+            totalSupply -= amount;
+        }
         emit Transfer(msg.sender, address(0), amount);
         return true;
     }

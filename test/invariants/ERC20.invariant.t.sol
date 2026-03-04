@@ -109,7 +109,9 @@ contract ERC20InvariantTest is Test {
     function invariant_sumBalancesEqualsTotalSupply() public view {
         uint256 sum;
         for (uint256 i = 0; i < users.length; i++) {
-            sum += token.balanceOf(users[i]);
+            unchecked {
+                sum += token.balanceOf(users[i]);
+            }
         }
         assertEq(sum, token.totalSupply());
     }

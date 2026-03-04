@@ -197,4 +197,10 @@ contract MyTokenTest is Test {
         assertEq(token.balanceOf(bob), bobBefore);
         assertEq(token.totalSupply(), supplyBefore);
     }
+
+    function testApproveRevert_ZeroAddress() public {
+        vm.prank(alice);
+        vm.expectRevert(ZeroAddress.selector);
+        token.approve(address(0), 1 ether);
+    }
 }
